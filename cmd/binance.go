@@ -14,23 +14,22 @@ var cmdBinance = &cobra.Command{
 	Short: "Deal with binance",
 }
 
-var cmdBinanceGet = &cobra.Command{
-	Use:   "get",
-	Short: "Get binance data",
+var cmdBinanceProcess = &cobra.Command{
+	Use:   "process",
+	Short: "Process binance data",
 	Run: func(cmd *cobra.Command, args []string) {
 		config := utils.NewConfig()
-		config.LoadConfig("./config")
-
-		client := binance.NewClient("https://api.binance.com", config.Exchanges["binance"].APIKey, config.Exchanges["binance"].SecretKey, 30, 5, 10, 365)
-
-		if err := binance.GetTradingPairs(client); err != nil {
+		if err := config.LoadConfig("./config"); err != nil {
 			fmt.Println(err)
 			os.Exit(1)
 		}
+
+		binance := binance.NewBinance(config.Exchanges["binance"], "https://api.binance.com")
+		binance.ProcessBinanceData()
 	},
 }
 
 func binanceCmdInit() {
 	rootCmd.AddCommand(cmdBinance)
-	cmdBinance.AddCommand(cmdBinanceGet)
+	cmdBinance.AddCommand(cmdBinanceProcess)
 }
