@@ -4,6 +4,7 @@ import (
 	"crypto/hmac"
 	"crypto/sha256"
 	"encoding/hex"
+	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"net/http"
@@ -21,6 +22,10 @@ type Client struct {
 	MaxRetries int
 }
 
+type ServerTime struct {
+	ServerTime int64 `json:"serverTime"`
+}
+
 func NewClient(baseUrl string, apiKey string, secretKey string, timeout time.Duration, retryDelay time.Duration, maxRetries int) *Client {
 	return &Client{
 		HTTPClient: &http.Client{
@@ -32,6 +37,25 @@ func NewClient(baseUrl string, apiKey string, secretKey string, timeout time.Dur
 		RetryDelay: retryDelay,
 		MaxRetries: maxRetries,
 	}
+}
+
+func (c *Client) getServerTime() (*ServerTime, error) {
+	response, err := http.Get(fmt.Sprintf("%s/api/v3/time", c.BaseUrl))
+	if err != nil {
+		return nil, fmt.Errorf("could not request time endpoint")
+	}
+
+	body, err := ioutil.ReadAll(response.Body)
+	if err != nil {
+		return nil, fmt.Errorf("error while reading body")
+	}
+
+	serverTime := ServerTime{}
+	if err := json.Unmarshal(body, &serverTime); err != nil {
+		return nil, fmt.Errorf("could not unmarshal server time %+v", err)
+	}
+
+	return &serverTime, nil
 }
 
 func (c *Client) generateSignature(queryString string) (string, error) {
@@ -52,6 +76,9 @@ func (c *Client) buildQueryString(q url.Values, params map[string]string) url.Va
 	for elem := range params {
 		q.Add(elem, params[elem])
 	}
+
+	serverTime, _ := c.getServerTime()
+	q.Add("timestamp", fmt.Sprint(serverTime.ServerTime))
 
 	signature, err := c.generateSignature(q.Encode())
 	if err != nil {
