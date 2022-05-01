@@ -77,7 +77,10 @@ func (c *Client) buildQueryString(q url.Values, params map[string]string) url.Va
 		q.Add(elem, params[elem])
 	}
 
-	serverTime, _ := c.getServerTime()
+	serverTime, err := c.getServerTime()
+	if err != nil {
+		return nil
+	}
 	q.Add("timestamp", fmt.Sprint(serverTime.ServerTime))
 
 	signature, err := c.generateSignature(q.Encode())
