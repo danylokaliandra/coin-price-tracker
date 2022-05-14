@@ -9,8 +9,9 @@ import (
 	"io/ioutil"
 	"net/http"
 	"net/url"
-	"os"
 	"time"
+
+	log "github.com/sirupsen/logrus"
 )
 
 type Client struct {
@@ -128,12 +129,17 @@ func (c *Client) RequestWithRetries(endpoint string, parameters map[string]strin
 
 	for {
 		body, err = c.request(endpoint, parameters)
-		if err == nil || retries == c.MaxRetries {
+		if body != nil {
+			break
+		}
+
+		if retries == c.MaxRetries {
+			log.Warn("max retries exceeded...")
 			break
 		}
 
 		retries += 1
-		fmt.Fprintf(os.Stderr, "%+v (Retry %+v/%+v)\n", err, retries, c.MaxRetries)
+		log.Warn("retrying... [%s/%s]: %s", retries, c.MaxRetries, err.Error())
 		time.Sleep(time.Second * c.RetryDelay)
 	}
 

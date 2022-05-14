@@ -3,6 +3,8 @@ package utils
 import (
 	"encoding/json"
 	"fmt"
+
+	log "github.com/sirupsen/logrus"
 )
 
 func OutputResult(data interface{}) error {
@@ -11,7 +13,7 @@ func OutputResult(data interface{}) error {
 		return fmt.Errorf("could not marshal output: %s", err.Error())
 	}
 
-	fmt.Println(string(output))
+	log.Info(string(output))
 
 	return nil
 }
