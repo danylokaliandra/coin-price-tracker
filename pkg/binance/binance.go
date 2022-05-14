@@ -24,10 +24,6 @@ func NewBinance(config utils.Exchange, baseUrl string) *Binance {
 }
 
 func (b *Binance) ProcessBinanceData() {
-	log.SetFormatter(&log.TextFormatter{
-		DisableColors: false,
-		FullTimestamp: true,
-	})
 	log.Println("Starting process Binance data...")
 
 	log.Println("Initializing Binance client...")

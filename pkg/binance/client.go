@@ -42,17 +42,17 @@ func NewClient(baseUrl string, apiKey string, secretKey string, timeout time.Dur
 func (c *Client) getServerTime() (*ServerTime, error) {
 	response, err := http.Get(fmt.Sprintf("%s/api/v3/time", c.BaseUrl))
 	if err != nil {
-		return nil, fmt.Errorf("could not request time endpoint")
+		return nil, fmt.Errorf("could not request time endpoint: %s", err.Error())
 	}
 
 	body, err := ioutil.ReadAll(response.Body)
 	if err != nil {
-		return nil, fmt.Errorf("error while reading body")
+		return nil, fmt.Errorf("error while reading body: %s", err.Error())
 	}
 
 	serverTime := ServerTime{}
 	if err := json.Unmarshal(body, &serverTime); err != nil {
-		return nil, fmt.Errorf("could not unmarshal server time %+v", err)
+		return nil, fmt.Errorf("could not unmarshal server time: %s", err.Error())
 	}
 
 	return &serverTime, nil
@@ -63,7 +63,7 @@ func (c *Client) generateSignature(queryString string) (string, error) {
 	_, err := mac.Write([]byte(queryString))
 	digest := mac.Sum(nil)
 	if err != nil {
-		return "", fmt.Errorf("could not generate hmac")
+		return "", fmt.Errorf("could not generate hmac: %s", err.Error())
 	}
 	hexDigest := hex.EncodeToString(digest)
 	return hexDigest, nil
@@ -96,7 +96,7 @@ func (c *Client) buildQueryString(q url.Values, params map[string]string) url.Va
 func (c *Client) request(endpoint string, parameters map[string]string) ([]byte, error) {
 	req, err := http.NewRequest("GET", fmt.Sprintf("%s%s", c.BaseUrl, endpoint), nil)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error while executing request: %s", err.Error())
 	}
 
 	q := req.URL.Query()
@@ -109,13 +109,13 @@ func (c *Client) request(endpoint string, parameters map[string]string) ([]byte,
 
 	response, err := c.HTTPClient.Do(req)
 	if err != nil || response.StatusCode != 200 {
-		return nil, fmt.Errorf("error while executing request: %+v", response.Status)
+		return nil, fmt.Errorf("error while executing request: %s", err.Error())
 	}
 	defer response.Body.Close()
 
 	body, err := ioutil.ReadAll(response.Body)
 	if err != nil {
-		return nil, fmt.Errorf("error while reading body")
+		return nil, fmt.Errorf("error while reading body: %s", err.Error())
 	}
 
 	return body, nil
@@ -138,7 +138,7 @@ func (c *Client) RequestWithRetries(endpoint string, parameters map[string]strin
 	}
 
 	if err != nil {
-		return nil, fmt.Errorf("could not request '%+v' endpoint", endpoint)
+		return nil, fmt.Errorf("could not request '%+v' endpoint: %s", endpoint, err.Error())
 	}
 
 	return body, err

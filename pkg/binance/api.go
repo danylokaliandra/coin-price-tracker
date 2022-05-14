@@ -18,12 +18,12 @@ type TradingPair struct {
 func GetTradingPairs(client *Client) (*TradingPairs, error) {
 	body, err := client.RequestWithRetries("/api/v1/exchangeInfo", map[string]string{})
 	if err != nil {
-		return nil, fmt.Errorf("could not request exchangeInfo endpoint")
+		return nil, fmt.Errorf("could not request exchangeInfo endpoint: %s", err.Error())
 	}
 
 	tradingPairs := TradingPairs{}
 	if err := json.Unmarshal(body, &tradingPairs); err != nil {
-		return nil, fmt.Errorf("could not unmarshal trading pairs")
+		return nil, fmt.Errorf("could not unmarshal trading pairs: %s", err.Error())
 	}
 
 	return &tradingPairs, nil
@@ -44,12 +44,12 @@ func GetTradingHistory(client *Client) (*[]TradingHistory, error) {
 	}
 	body, err := client.RequestWithRetries("/api/v3/myTrades", params)
 	if err != nil {
-		return nil, fmt.Errorf("could not request myTrades endpoint")
+		return nil, fmt.Errorf("could not request myTrades endpoint: %s", err.Error())
 	}
 
 	tradingHistory := []TradingHistory{}
 	if err := json.Unmarshal(body, &tradingHistory); err != nil {
-		return nil, fmt.Errorf("could not unmarshal trading history")
+		return nil, fmt.Errorf("could not unmarshal trading history: %s", err.Error())
 	}
 
 	return &tradingHistory, nil

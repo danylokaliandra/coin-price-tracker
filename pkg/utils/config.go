@@ -30,12 +30,12 @@ func (c *Config) LoadConfig(path string) error {
 
 	err := viper.ReadInConfig()
 	if err != nil {
-		return fmt.Errorf("could not retrieve config file")
+		return fmt.Errorf("could not retrieve config file: %s", err.Error())
 	}
 
 	err = viper.Unmarshal(&c)
 	if err != nil {
-		return fmt.Errorf("error unmarshalling config file")
+		return fmt.Errorf("error unmarshalling config file: %s", err.Error())
 	}
 
 	return nil
