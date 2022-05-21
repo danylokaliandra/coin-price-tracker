@@ -1,32 +1,45 @@
-GO := go
-BIN := tracklet
-M	= $(shell printf "\033[34;1m▶\033[0m")
+GO      := go
+BIN     := tracklet
+BINPATH := /usr/local/bin
 
-
-.PHONY: tidy build clean
 
 all: tidy fmt lint test build
 
 tidy:
-	$(info $(M) cleaning dependencies...)
+	$(info ▶ cleaning dependencies...)
 	$(GO) mod tidy
 
 fmt:
-	$(info $(M) checking formatting...)
-	@test -z $(shell gofmt -l $(SRC)) || (gofmt -d $(SRC); exit 1)
+	$(info ▶ formatting...)
+	gofmt -s -w .
 
 lint:
-	$(info $(M) running lint tools...)
+	$(info ▶ running lint tools...)
 	golangci-lint run -v
 
 test:
-	$(info $(M) running tests...)
+	$(info ▶ running tests...)
 	go test -coverprofile cover.out -v ./...
 
 build:
-	$(info $(M) compiling program...)
+	$(info ▶ compiling program...)
 	$(GO) build -o $(BIN)
 
+install: build
+	$(info ▶ installing program...)
+	mkdir -p ~/.tracklet
+	cp ./config/tracklet.yaml ~/.tracklet/tracklet.yaml
+	sudo cp $(BIN) $(BINPATH)/$(BIN)
+
+uninstall:
+	$(info ▶ uninstalling program...)
+	cp ~/.tracklet/tracklet.yaml /tmp/tracklet_backup.yaml
+	rm -rf ~/.tracklet
+	sudo rm $(BINPATH)/$(BIN)
+
 clean:
-	$(info $(M) removing binary...)
+	$(info ▶ removing binary...)
 	rm $(BIN)
+
+
+.PHONY: tidy fmt lint test build install uninstall clean
