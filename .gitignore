@@ -15,3 +15,5 @@
 # vendor/
 
 tracklet
+config/tracklet.yaml
+pkg/gui/*
