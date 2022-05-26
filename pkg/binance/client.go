@@ -1,3 +1,4 @@
+// Handles HTTP requests logic
 package binance
 
 import (
@@ -12,6 +13,7 @@ import (
 	"time"
 
 	log "github.com/sirupsen/logrus"
+	"github.com/spf13/viper"
 )
 
 type Client struct {
@@ -19,57 +21,63 @@ type Client struct {
 	BaseUrl    string
 	APIKey     string
 	SecretKey  string
-	RetryDelay time.Duration
+	RetryDelay time.Duration // in seconds
 	MaxRetries int
+	MaxHistory int // in days
 }
 
 type ServerTime struct {
 	ServerTime int64 `json:"serverTime"`
 }
 
-func NewClient(baseUrl string, apiKey string, secretKey string, timeout time.Duration, retryDelay time.Duration, maxRetries int) *Client {
+// Create a new Client object
+func NewClient() *Client {
 	return &Client{
 		HTTPClient: &http.Client{
-			Timeout: time.Second * timeout,
+			Timeout: time.Second * viper.GetDuration("tracklet.timeout"),
 		},
-		BaseUrl:    baseUrl,
-		APIKey:     apiKey,
-		SecretKey:  secretKey,
-		RetryDelay: retryDelay,
-		MaxRetries: maxRetries,
+		BaseUrl:    viper.GetString("exchanges.binance.apiBaseUrl"),
+		APIKey:     viper.GetString("exchanges.binance.apiKey"),
+		SecretKey:  viper.GetString("exchanges.binance.secretKey"),
+		RetryDelay: viper.GetDuration("tracklet.retryDelay"),
+		MaxRetries: viper.GetInt("tracklet.maxRetries"),
+		MaxHistory: viper.GetInt("tracklet.maxHistory"),
 	}
 }
 
+// HTTP request Binance server time
 func (c *Client) getServerTime() (*ServerTime, error) {
 	response, err := http.Get(fmt.Sprintf("%s/api/v3/time", c.BaseUrl))
 	if err != nil {
-		return nil, fmt.Errorf("could not request time endpoint: %s", err.Error())
+		return nil, fmt.Errorf("could not request time endpoint: %v", err)
 	}
 
 	body, err := ioutil.ReadAll(response.Body)
 	if err != nil {
-		return nil, fmt.Errorf("error while reading body: %s", err.Error())
+		return nil, fmt.Errorf("error while reading body: %v", err)
 	}
 
 	serverTime := ServerTime{}
 	if err := json.Unmarshal(body, &serverTime); err != nil {
-		return nil, fmt.Errorf("could not unmarshal server time: %s", err.Error())
+		return nil, fmt.Errorf("could not unmarshal server time: %v", err)
 	}
 
 	return &serverTime, nil
 }
 
+// Generate a HMAC signed query string for authorizing API requests
 func (c *Client) generateSignature(queryString string) (string, error) {
 	mac := hmac.New(sha256.New, []byte(c.SecretKey))
 	_, err := mac.Write([]byte(queryString))
 	digest := mac.Sum(nil)
 	if err != nil {
-		return "", fmt.Errorf("could not generate hmac: %s", err.Error())
+		return "", fmt.Errorf("could not generate hmac: %v", err)
 	}
 	hexDigest := hex.EncodeToString(digest)
 	return hexDigest, nil
 }
 
+// Create a Binance accepted query string
 func (c *Client) buildQueryString(q url.Values, params map[string]string) url.Values {
 	if len(params) == 0 {
 		return nil
@@ -94,13 +102,15 @@ func (c *Client) buildQueryString(q url.Values, params map[string]string) url.Va
 	return q
 }
 
+// HTTP get request for a given Binance API endpoint
 func (c *Client) request(endpoint string, parameters map[string]string) ([]byte, error) {
 	req, err := http.NewRequest("GET", fmt.Sprintf("%s%s", c.BaseUrl, endpoint), nil)
 	if err != nil {
-		return nil, fmt.Errorf("error while executing request: %s", err.Error())
+		return nil, fmt.Errorf("error while executing request: %v", err)
 	}
 
 	q := req.URL.Query()
+
 	queryString := c.buildQueryString(q, parameters)
 	if queryString != nil {
 		req.URL.RawQuery = queryString.Encode()
@@ -109,19 +119,24 @@ func (c *Client) request(endpoint string, parameters map[string]string) ([]byte,
 	req.Header.Add("X-MBX-APIKEY", c.APIKey)
 
 	response, err := c.HTTPClient.Do(req)
-	if err != nil || response.StatusCode != 200 {
-		return nil, fmt.Errorf("error while executing request: %s", err.Error())
+	if err != nil {
+		return nil, fmt.Errorf("error while executing request: %v", err)
 	}
 	defer response.Body.Close()
 
+	if response.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("non valid HTTP status code : %s", response.Status)
+	}
+
 	body, err := ioutil.ReadAll(response.Body)
 	if err != nil {
-		return nil, fmt.Errorf("error while reading body: %s", err.Error())
+		return nil, fmt.Errorf("error while reading body: %v", err)
 	}
 
 	return body, nil
 }
 
+// Retry mechanism for HTTP requests
 func (c *Client) RequestWithRetries(endpoint string, parameters map[string]string) ([]byte, error) {
 	var body []byte
 	var err error
@@ -134,17 +149,17 @@ func (c *Client) RequestWithRetries(endpoint string, parameters map[string]strin
 		}
 
 		if retries == c.MaxRetries {
-			log.Warn("max retries exceeded...")
+			log.Warn("Max retries exceeded...")
 			break
 		}
 
 		retries += 1
-		log.Warn("retrying... [%s/%s]: %s", retries, c.MaxRetries, err.Error())
+		log.Warnf("Retrying... [%d/%d]: %v", retries, c.MaxRetries, err)
 		time.Sleep(time.Second * c.RetryDelay)
 	}
 
 	if err != nil {
-		return nil, fmt.Errorf("could not request '%+v' endpoint: %s", endpoint, err.Error())
+		return nil, fmt.Errorf("could not request '%s' endpoint: %v", endpoint, err)
 	}
 
 	return body, err
