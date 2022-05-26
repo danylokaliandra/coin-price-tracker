@@ -1,35 +1,42 @@
 package cmd
 
 import (
-	"fmt"
-	"os"
-
 	"github.com/eliasbokreta/tracklet/pkg/binance"
-	"github.com/eliasbokreta/tracklet/pkg/utils"
 	"github.com/spf13/cobra"
+)
+
+var (
+	verbose bool
 )
 
 var cmdBinance = &cobra.Command{
 	Use:   "binance",
-	Short: "Deal with binance",
+	Short: "Deal with Binance",
 }
 
 var cmdBinanceProcess = &cobra.Command{
 	Use:   "process",
-	Short: "Process binance data",
+	Short: "Process Binance data",
 	Run: func(cmd *cobra.Command, args []string) {
-		config := utils.NewConfig()
-		if err := config.LoadConfig("./config"); err != nil {
-			fmt.Println(err)
-			os.Exit(1)
-		}
+		binance := binance.NewBinance()
+		binance.ProcessBinanceData(verbose)
+	},
+}
 
-		binance := binance.NewBinance(config.Exchanges["binance"], "https://api.binance.com")
-		binance.ProcessBinanceData()
+var cmdBinanceWallet = &cobra.Command{
+	Use:   "wallet",
+	Short: "Get binance wallet",
+	Run: func(cmd *cobra.Command, args []string) {
+		wallet := binance.NewWallet()
+		wallet.ProcessWallet()
 	},
 }
 
 func binanceCmdInit() {
 	rootCmd.AddCommand(cmdBinance)
+
 	cmdBinance.AddCommand(cmdBinanceProcess)
+	cmdBinanceProcess.Flags().BoolVarP(&verbose, "verbose", "v", false, "Print json data while processing")
+
+	cmdBinance.AddCommand(cmdBinanceWallet)
 }

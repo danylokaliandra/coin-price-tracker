@@ -15,8 +15,9 @@ func initCmd() {
 
 func Execute() error {
 	initCmd()
+
 	if err := rootCmd.Execute(); err != nil {
-		return fmt.Errorf("got error %s", err.Error())
+		return fmt.Errorf("got error %v", err)
 	}
 
 	return nil
