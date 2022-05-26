@@ -8,13 +8,10 @@ tracklet:
   maxRetries: 10  # Default: 10
 exchanges:
   binance:
+    apiBaseUrl: https://api.binance.com
     apiKey: titi
     secretKey: toto
-    exclude: # Needed to avoid making 2k+ useless requests due to the fact Binance API is dumb
-      basePair:
-      -
-      tradePair:
-      -
+    includePairs: [] # Needed to avoid making 2k+ useless requests due to the fact Binance API is dumb
   coinbase:
     apiKey: titi
     secretKey: toto
