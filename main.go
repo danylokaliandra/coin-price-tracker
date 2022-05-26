@@ -5,6 +5,7 @@ import (
 	"os"
 
 	"github.com/eliasbokreta/tracklet/cmd"
+	"github.com/eliasbokreta/tracklet/pkg/utils"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -13,6 +14,13 @@ func init() {
 		DisableColors: false,
 		FullTimestamp: true,
 	})
+
+	config := utils.NewConfig()
+
+	if err := config.LoadConfig(); err != nil {
+		fmt.Println(err)
+		os.Exit(1)
+	}
 }
 
 func main() {
