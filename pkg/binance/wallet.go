@@ -3,6 +3,7 @@ package binance
 
 import (
 	"encoding/json"
+	"fmt"
 	"strconv"
 
 	"github.com/eliasbokreta/tracklet/pkg/utils"
@@ -20,9 +21,10 @@ type Holdings struct {
 }
 
 type Stats struct {
-	TotalInvested  float64 `json:"totalInvested"`
-	GainPercentage float64 `json:"gainPercentage"`
-	GainValue      float64 `json:"gainValue"`
+	TotalInvested float64 `json:"totalInvested"`
+	TotalValue    float64 `json:"totalValue"`
+	GainValue     float64 `json:"gainValue"`
+	TotalAssets   int     `json:"totalAssets"`
 }
 
 // Create a new Wallet object
@@ -30,9 +32,10 @@ func NewWallet() *Wallet {
 	return &Wallet{
 		Holdings: make(map[string]Holdings),
 		Stats: Stats{
-			TotalInvested:  0,
-			GainPercentage: 0,
-			GainValue:      0,
+			TotalInvested: 0,
+			TotalValue:    0,
+			GainValue:     0,
+			TotalAssets:   0,
 		},
 	}
 }
@@ -94,6 +97,7 @@ func (w *Wallet) calculateTrades() {
 	}
 
 	for _, th := range tradingHistory {
+		// Allow to retrieve separate assets from a whole symbol
 		for _, tp := range tradingPairs.Symbols {
 			if th.Symbol == tp.Symbol {
 				th.BaseAsset = tp.BaseAsset
@@ -138,7 +142,7 @@ func (w *Wallet) calculateTrades() {
 				Quantity: previousTotal - obtainAmount,
 			}
 
-			// Currency gained
+			// Currency got
 			obtainAmount, err = strconv.ParseFloat(th.QuoteQuantity, 64)
 			if err != nil {
 				log.Errorf("Could not convert string to float: %v", err)
@@ -153,10 +157,47 @@ func (w *Wallet) calculateTrades() {
 	}
 }
 
+// Retrieve prices for all assets
+func (w *Wallet) calculatePrices() {
+	log.Info("Calculating prices...")
+	client := NewClient()
+	for asset, d := range w.Holdings {
+		symbol := fmt.Sprintf("%sUSDT", asset)
+		log.Info(symbol)
+		tickerPrice, err := GetTickerPrice(client, symbol)
+		if err != nil {
+			log.Errorf("Could not get ticker price: %v", err)
+		}
+
+		price, err := strconv.ParseFloat(tickerPrice.Price, 64)
+		if err != nil {
+			log.Errorf("Could not convert string to float: %v", err)
+			return
+		}
+
+		total := price * w.Holdings[asset].Quantity
+		d.CurrentValue = total
+		w.Holdings[asset] = d
+	}
+}
+
+// Calculate global wallet stats
+func (w *Wallet) calculateStats() {
+	log.Info("Calculating wallet stats...")
+	for _, asset := range w.Holdings {
+		w.Stats.TotalAssets += 1
+		w.Stats.TotalValue += asset.CurrentValue
+	}
+
+	w.Stats.GainValue = (w.Stats.TotalValue - w.Stats.TotalInvested)
+}
+
 // Process Binance fetched data
 func (w *Wallet) ProcessWallet() {
 	w.calculateFiatPayments()
 	w.calculateTrades()
+	w.calculatePrices()
+	w.calculateStats()
 
 	if err := utils.OutputResult(w); err != nil {
 		log.Errorf("Could not output result: %v", err)
