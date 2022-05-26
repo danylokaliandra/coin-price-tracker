@@ -3,17 +3,16 @@ package utils
 import (
 	"encoding/json"
 	"fmt"
-
-	log "github.com/sirupsen/logrus"
 )
 
+// Print json structures
 func OutputResult(data interface{}) error {
 	output, err := json.MarshalIndent(data, "", "  ")
 	if err != nil {
-		return fmt.Errorf("could not marshal output: %s", err.Error())
+		return fmt.Errorf("could not marshal output: %v", err)
 	}
 
-	log.Info(string(output))
+	fmt.Println(string(output))
 
 	return nil
 }
