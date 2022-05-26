@@ -1,5 +1,7 @@
-# tracklet
-A CLI portfolio tracker intended to keep track of investments.
+# tracklet (WIP)
+
+# Description
+A CLI portfolio tracker.
 
 ### Supported exchanges :
 - Binance (WIP)
@@ -15,7 +17,7 @@ Modify your config file under `$HOME/.tracklet/tracklet.yaml` with the necessary
 
 # Usage
 `tracklet [exchange] process` : Gather data from binance account and save to file to allow wallet calculation.\
-`tracklet [exchange] wallet` : Perform calculation to build wallet data.
+`tracklet [exchange] wallet` : Perform calculation to build wallet data (WIP).
 
 # Uninstall
 To remove **tracklet** : `make uninstall`.
