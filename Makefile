@@ -27,8 +27,8 @@ build:
 
 install: build
 	$(info ▶ installing program...)
-	mkdir -p ~/.tracklet
-	cp ./config/tracklet.yaml ~/.tracklet/tracklet.yaml
+	mkdir -p ~/.tracklet/data
+	cp ./config/tracklet.yaml ~/.tracklet/tracklet.yaml || cp ./config/example.yaml ~/.tracklet/tracklet.yaml
 	sudo cp $(BIN) $(BINPATH)/$(BIN)
 
 uninstall:
