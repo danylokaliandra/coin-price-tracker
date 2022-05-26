@@ -1,3 +1,4 @@
+// Handles Binance package logic to fetch all data
 package binance
 
 import (
@@ -9,46 +10,169 @@ import (
 )
 
 type Binance struct {
-	Config  utils.Exchange
-	BaseUrl string
-
-	TradingPairs   TradingPairs
-	TradingHistory []TradingHistory
+	TradingPairs    *TradingPairs
+	FiatPayments    *FiatPayments
+	TradingHistory  *[]TradingHistory
+	DustConversion  *DustConversion
+	DividendHistory *DividendHistory
+	DepositHistory  *[]DepositHistory
+	WithdrawHistory *[]WithdrawHistory
 }
 
-func NewBinance(config utils.Exchange, baseUrl string) *Binance {
-	return &Binance{
-		Config:  config,
-		BaseUrl: baseUrl,
+// Create a new Binance object
+func NewBinance() *Binance {
+	return &Binance{}
+}
+
+// Write all fetched data to files
+func (b *Binance) saveDataToFile() {
+	if err := utils.WriteToFile("trading_pairs", b.TradingPairs); err != nil {
+		log.Errorf("Could not write data to trading_pairs: %v", err)
+	}
+
+	if err := utils.WriteToFile("fiat_payments", b.FiatPayments); err != nil {
+		log.Errorf("Could not write data to fiat_payments: %v", err)
+	}
+
+	if err := utils.WriteToFile("trading_history", b.TradingHistory); err != nil {
+		log.Errorf("Could not write data to trading_history: %v", err)
+	}
+
+	if err := utils.WriteToFile("dust_conversion", b.DustConversion); err != nil {
+		log.Errorf("Could not write data to dust_conversion: %v", err)
+	}
+
+	if err := utils.WriteToFile("dividend_history", b.DividendHistory); err != nil {
+		log.Errorf("Could not write data to dividend_history: %v", err)
+	}
+
+	if err := utils.WriteToFile("deposit_history", b.DepositHistory); err != nil {
+		log.Errorf("Could not write data to deposit_history: %v", err)
+	}
+
+	if err := utils.WriteToFile("withdraw_history", b.WithdrawHistory); err != nil {
+		log.Errorf("Could not write data to withdraw_history: %v", err)
 	}
 }
 
-func (b *Binance) ProcessBinanceData() {
-	log.Println("Starting process Binance data...")
+// Retrieve all account data from Binance
+func (b *Binance) ProcessBinanceData(verbose bool) {
+	log.Info("Starting process Binance data...")
 
-	log.Println("Initializing Binance client...")
-	client := NewClient(b.BaseUrl, b.Config.APIKey, b.Config.SecretKey, 30, 5, 10)
+	log.Info("Initializing Binance client...")
+	client := NewClient()
 
-	log.Println("Fetching trading pairs data...")
+	// EXCHANGE'S TRADING PAIRS
+	log.Info("Fetching trading pairs data...")
 	tradingPairs, err := GetTradingPairs(client)
 	if err != nil {
 		fmt.Println(err)
 		os.Exit(1)
 	}
 
-	b.TradingPairs = *tradingPairs
+	b.TradingPairs = tradingPairs
 
-	log.Println("Fetching trading history data...")
-	tradingHistory, err := GetTradingHistory(client)
+	// FIAT PAYMENTS HISTORY
+	log.Info("Fetching fiat payments history data...")
+	fiatPayments, err := GetFiatPaymentsHistory(client)
 	if err != nil {
 		fmt.Println(err)
 		os.Exit(1)
 	}
 
-	b.TradingHistory = *tradingHistory
-	//utils.OutputResult(b.TradingPairs)
-	if err := utils.OutputResult(b.TradingHistory); err != nil {
+	b.FiatPayments = fiatPayments
+
+	if verbose {
+		if err := utils.OutputResult(b.FiatPayments); err != nil {
+			fmt.Println(err)
+			os.Exit(1)
+		}
+	}
+
+	// TRADING HISTORY
+	log.Info("Fetching trading history data...")
+	tradingHistory, err := GetTradingHistory(client, b.TradingPairs)
+	if err != nil {
 		fmt.Println(err)
 		os.Exit(1)
 	}
+
+	b.TradingHistory = tradingHistory
+
+	if verbose {
+		if err := utils.OutputResult(b.TradingHistory); err != nil {
+			fmt.Println(err)
+			os.Exit(1)
+		}
+	}
+
+	// DUST CONVERSION HISTORY
+	log.Info("Fetching dust conversion history data...")
+	dustConversion, err := GetDustConversionHistory(client)
+	if err != nil {
+		fmt.Println(err)
+		os.Exit(1)
+	}
+
+	b.DustConversion = dustConversion
+
+	if verbose {
+		if err := utils.OutputResult(b.DustConversion); err != nil {
+			fmt.Println(err)
+			os.Exit(1)
+		}
+	}
+
+	// DIVIDEND HISTORY
+	log.Info("Fetching dividend history data...")
+	dividendHistory, err := GetDividendHistory(client)
+	if err != nil {
+		fmt.Println(err)
+		os.Exit(1)
+	}
+
+	b.DividendHistory = dividendHistory
+
+	if verbose {
+		if err := utils.OutputResult(b.DividendHistory); err != nil {
+			fmt.Println(err)
+			os.Exit(1)
+		}
+	}
+
+	// DEPOSIT HISTORY
+	log.Info("Fetching deposit history data...")
+	depositHistory, err := GetDepositHistory(client)
+	if err != nil {
+		fmt.Println(err)
+		os.Exit(1)
+	}
+
+	b.DepositHistory = depositHistory
+
+	if verbose {
+		if err := utils.OutputResult(b.DepositHistory); err != nil {
+			fmt.Println(err)
+			os.Exit(1)
+		}
+	}
+
+	// WITHDRAW HISTORY
+	log.Info("Fetching withdraw history data...")
+	withdrawHistory, err := GetWithdrawHistory(client)
+	if err != nil {
+		fmt.Println(err)
+		os.Exit(1)
+	}
+
+	b.WithdrawHistory = withdrawHistory
+
+	if verbose {
+		if err := utils.OutputResult(b.WithdrawHistory); err != nil {
+			fmt.Println(err)
+			os.Exit(1)
+		}
+	}
+
+	b.saveDataToFile()
 }
