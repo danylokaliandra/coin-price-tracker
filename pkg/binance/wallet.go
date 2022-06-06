@@ -3,9 +3,10 @@ package binance
 
 import (
 	"encoding/json"
-	"fmt"
 	"strconv"
+	"strings"
 
+	"github.com/eliasbokreta/tracklet/pkg/aggregators/coingecko"
 	"github.com/eliasbokreta/tracklet/pkg/utils"
 	log "github.com/sirupsen/logrus"
 )
@@ -160,24 +161,25 @@ func (w *Wallet) calculateTrades() {
 // Retrieve prices for all assets
 func (w *Wallet) calculatePrices() {
 	log.Info("Calculating prices...")
-	client := NewClient()
 	for asset, d := range w.Holdings {
-		symbol := fmt.Sprintf("%sUSDT", asset)
-		log.Info(symbol)
-		tickerPrice, err := GetTickerPrice(client, symbol)
+		log.Info("Getting Coingecko coin list")
+		coinList, err := coingecko.GetCoinList()
 		if err != nil {
-			log.Errorf("Could not get ticker price: %v", err)
+			log.Errorf("Could not get coin list: %v", err)
 		}
+		for _, coin := range coinList.Coins {
+			if strings.EqualFold(asset, coin.Symbol) {
+				log.Infof("Getting '%s' coin market data", coin.Name)
+				coinPrice, err := coingecko.GetCoinPrice(coin.ID)
+				if err != nil {
+					log.Errorf("Could not get coin price: %v", err)
+				}
 
-		price, err := strconv.ParseFloat(tickerPrice.Price, 64)
-		if err != nil {
-			log.Errorf("Could not convert string to float: %v", err)
-			return
+				total := coinPrice.MarketData.CurrentPrice.EUR * w.Holdings[asset].Quantity
+				d.CurrentValue = total
+				w.Holdings[asset] = d
+			}
 		}
-
-		total := price * w.Holdings[asset].Quantity
-		d.CurrentValue = total
-		w.Holdings[asset] = d
 	}
 }
 

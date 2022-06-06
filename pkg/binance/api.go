@@ -16,7 +16,6 @@ const (
 	dividendHistoryEndpoint       = "/sapi/v1/asset/assetDividend"
 	depositHistoryEndpoint        = "/sapi/v1/capital/deposit/hisrec"
 	withdrawHistoryEndpoint       = "/sapi/v1/capital/withdraw/history"
-	tickerPriceEndpoint           = "/api/v3/ticker/price"
 )
 
 type TradingPairs struct {
@@ -28,7 +27,8 @@ type TradingPairs struct {
 }
 
 // Get trading pairs available on Binance
-func GetTradingPairs(client *Client) (*TradingPairs, error) {
+func GetTradingPairs() (*TradingPairs, error) {
+	client := NewClient()
 	body, err := client.RequestWithRetries(tradingPairsEndpoint, map[string]string{})
 	if err != nil {
 		return nil, fmt.Errorf("could not request trading pairs endpoint: %v", err)
@@ -57,7 +57,8 @@ type FiatPayments struct {
 }
 
 // Get Binance account fiat payments history
-func GetFiatPaymentsHistory(client *Client) (*FiatPayments, error) {
+func GetFiatPaymentsHistory() (*FiatPayments, error) {
+	client := NewClient()
 	dateRanges := utils.GetDateRanges(client.MaxHistory, 15)
 	fiatPayments := FiatPayments{}
 
@@ -102,7 +103,8 @@ type TradingHistory struct {
 }
 
 // Get Binance account trading history
-func GetTradingHistory(client *Client, tradingPairs *TradingPairs) (*[]TradingHistory, error) {
+func GetTradingHistory(tradingPairs *TradingPairs) (*[]TradingHistory, error) {
+	client := NewClient()
 	tradingHistory := []TradingHistory{}
 
 	for _, tp := range tradingPairs.Symbols {
@@ -141,7 +143,8 @@ type DustConversion struct {
 }
 
 // Get dust conversion history
-func GetDustConversionHistory(client *Client) (*DustConversion, error) {
+func GetDustConversionHistory() (*DustConversion, error) {
+	client := NewClient()
 	dateRanges := utils.GetDateRanges(client.MaxHistory, 15)
 	dustConversion := DustConversion{}
 
@@ -178,7 +181,8 @@ type DividendHistory struct {
 }
 
 // Get dividend (staking) rewards history
-func GetDividendHistory(client *Client) (*DividendHistory, error) {
+func GetDividendHistory() (*DividendHistory, error) {
+	client := NewClient()
 	dateRanges := utils.GetDateRanges(client.MaxHistory, 15)
 	dividendHistory := DividendHistory{}
 
@@ -214,7 +218,8 @@ type DepositHistory struct {
 }
 
 // Get deposit history
-func GetDepositHistory(client *Client) (*[]DepositHistory, error) {
+func GetDepositHistory() (*[]DepositHistory, error) {
+	client := NewClient()
 	dateRanges := utils.GetDateRanges(client.MaxHistory, 15)
 	depositHistory := []DepositHistory{}
 
@@ -251,7 +256,8 @@ type WithdrawHistory struct {
 }
 
 // Get withdraw history
-func GetWithdrawHistory(client *Client) (*[]WithdrawHistory, error) {
+func GetWithdrawHistory() (*[]WithdrawHistory, error) {
+	client := NewClient()
 	dateRanges := utils.GetDateRanges(client.MaxHistory, 15)
 	withdrawHistory := []WithdrawHistory{}
 
@@ -279,28 +285,4 @@ func GetWithdrawHistory(client *Client) (*[]WithdrawHistory, error) {
 	}
 
 	return &withdrawHistory, nil
-}
-
-type TickerPrice struct {
-	Symbol string `json:"symbol"`
-	Price  string `json:"price"`
-}
-
-// Get ticker price
-func GetTickerPrice(client *Client, symbol string) (*TickerPrice, error) {
-	params := map[string]string{
-		"symbol": symbol,
-	}
-
-	body, err := client.RequestWithRetries(tickerPriceEndpoint, params)
-	if err != nil {
-		return nil, fmt.Errorf("could not request ticker price endpoint: %v", err)
-	}
-
-	tickerPrice := TickerPrice{}
-	if err := json.Unmarshal(body, &tickerPrice); err != nil {
-		return nil, fmt.Errorf("could not unmarshal ticker price: %v", err)
-	}
-
-	return &tickerPrice, nil
 }

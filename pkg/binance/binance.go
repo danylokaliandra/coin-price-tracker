@@ -59,12 +59,9 @@ func (b *Binance) saveDataToFile() {
 func (b *Binance) ProcessBinanceData(verbose bool) {
 	log.Info("Starting process Binance data...")
 
-	log.Info("Initializing Binance client...")
-	client := NewClient()
-
 	// EXCHANGE'S TRADING PAIRS
 	log.Info("Fetching trading pairs data...")
-	tradingPairs, err := GetTradingPairs(client)
+	tradingPairs, err := GetTradingPairs()
 	if err != nil {
 		fmt.Println(err)
 		os.Exit(1)
@@ -74,7 +71,7 @@ func (b *Binance) ProcessBinanceData(verbose bool) {
 
 	// FIAT PAYMENTS HISTORY
 	log.Info("Fetching fiat payments history data...")
-	fiatPayments, err := GetFiatPaymentsHistory(client)
+	fiatPayments, err := GetFiatPaymentsHistory()
 	if err != nil {
 		fmt.Println(err)
 		os.Exit(1)
@@ -91,7 +88,7 @@ func (b *Binance) ProcessBinanceData(verbose bool) {
 
 	// TRADING HISTORY
 	log.Info("Fetching trading history data...")
-	tradingHistory, err := GetTradingHistory(client, b.TradingPairs)
+	tradingHistory, err := GetTradingHistory(b.TradingPairs)
 	if err != nil {
 		fmt.Println(err)
 		os.Exit(1)
@@ -108,7 +105,7 @@ func (b *Binance) ProcessBinanceData(verbose bool) {
 
 	// DUST CONVERSION HISTORY
 	log.Info("Fetching dust conversion history data...")
-	dustConversion, err := GetDustConversionHistory(client)
+	dustConversion, err := GetDustConversionHistory()
 	if err != nil {
 		fmt.Println(err)
 		os.Exit(1)
@@ -125,7 +122,7 @@ func (b *Binance) ProcessBinanceData(verbose bool) {
 
 	// DIVIDEND HISTORY
 	log.Info("Fetching dividend history data...")
-	dividendHistory, err := GetDividendHistory(client)
+	dividendHistory, err := GetDividendHistory()
 	if err != nil {
 		fmt.Println(err)
 		os.Exit(1)
@@ -142,7 +139,7 @@ func (b *Binance) ProcessBinanceData(verbose bool) {
 
 	// DEPOSIT HISTORY
 	log.Info("Fetching deposit history data...")
-	depositHistory, err := GetDepositHistory(client)
+	depositHistory, err := GetDepositHistory()
 	if err != nil {
 		fmt.Println(err)
 		os.Exit(1)
@@ -159,7 +156,7 @@ func (b *Binance) ProcessBinanceData(verbose bool) {
 
 	// WITHDRAW HISTORY
 	log.Info("Fetching withdraw history data...")
-	withdrawHistory, err := GetWithdrawHistory(client)
+	withdrawHistory, err := GetWithdrawHistory()
 	if err != nil {
 		fmt.Println(err)
 		os.Exit(1)
