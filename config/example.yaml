@@ -2,17 +2,17 @@
 # THIS FILE IS USED AS AN EXAMPLE
 # TO BE USED, IT MUST BE RENAMED `tracklet.yaml`
 tracklet:
-  maxHistory: 365 # Default: 365
-  timeout: 30     # Default: 30
-  retryDelay: 5   # Default: 5
-  maxRetries: 10  # Default: 10
+  maxHistory: 365                         # Default: 365
+  timeout: 30                             # Default: 30
+  retryDelay: 8                           # Default: 8
+  maxRetries: 10                          # Default: 10
+aggregators:
+  coingecko:
+    apiBaseUrl: https://api.coingecko.com # Default: https://api.coingecko.com
 exchanges:
   binance:
-    apiBaseUrl: https://api.binance.com
-    apiKey: titi
-    secretKey: toto
-    includePairs: [] # Needed to avoid making 2k+ useless requests due to the fact Binance API is dumb
-  coinbase:
-    apiKey: titi
-    secretKey: toto
+    apiBaseUrl: https://api.binance.com   # Default: https://api.binance.com
+    apiKey: titi                          # Required
+    secretKey: toto                       # Required
+    includePairs: []                      # Required
 
