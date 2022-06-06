@@ -15,9 +15,7 @@ func init() {
 		FullTimestamp: true,
 	})
 
-	config := utils.NewConfig()
-
-	if err := config.LoadConfig(); err != nil {
+	if err := utils.LoadConfig(); err != nil {
 		fmt.Println(err)
 		os.Exit(1)
 	}
