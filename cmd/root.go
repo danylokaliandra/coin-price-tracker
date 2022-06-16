@@ -6,11 +6,16 @@ import (
 	"github.com/spf13/cobra"
 )
 
+var (
+	verbose bool
+)
+
 var rootCmd = &cobra.Command{Use: "tracklet"}
 
 func initCmd() {
 	cobra.OnInitialize()
 	binanceCmdInit()
+	kucoinCmdInit()
 }
 
 func Execute() error {

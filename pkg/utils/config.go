@@ -10,12 +10,14 @@ import (
 func setDefaultValues() {
 	viper.SetDefault("tracklet.maxHistory", 365)
 	viper.SetDefault("tracklet.timeout", 30)
-	viper.SetDefault("tracklet.retryDelay", 8)
-	viper.SetDefault("tracklet.maxRetries", 10)
+	viper.SetDefault("tracklet.retryDelay", 10)
+	viper.SetDefault("tracklet.maxRetries", 12)
 
 	viper.SetDefault("aggregators.coingecko.apiBaseUrl", "https://api.coingecko.com")
 
 	viper.SetDefault("exchanges.binance.apiBaseUrl", "https://api.binance.com")
+
+	viper.SetDefault("exchanges.kucoin.apiBaseUrl", "https://api.kucoin.com")
 }
 
 // Load configuration file
