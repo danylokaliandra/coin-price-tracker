@@ -5,10 +5,6 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var (
-	verbose bool
-)
-
 var cmdBinance = &cobra.Command{
 	Use:   "binance",
 	Short: "Deal with Binance",
@@ -18,7 +14,7 @@ var cmdBinanceProcess = &cobra.Command{
 	Use:   "process",
 	Short: "Process Binance data",
 	Run: func(cmd *cobra.Command, args []string) {
-		binance := binance.NewBinance()
+		binance := binance.New()
 		binance.ProcessBinanceData(verbose)
 	},
 }

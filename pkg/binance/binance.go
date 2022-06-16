@@ -20,7 +20,7 @@ type Binance struct {
 }
 
 // Create a new Binance object
-func NewBinance() *Binance {
+func New() *Binance {
 	return &Binance{}
 }
 
