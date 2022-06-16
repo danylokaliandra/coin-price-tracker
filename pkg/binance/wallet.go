@@ -17,6 +17,7 @@ type Wallet struct {
 }
 
 type Holdings struct {
+	Name         string  `json:"name"`
 	Quantity     float64 `json:"quantity"`
 	CurrentValue float64 `json:"currentValue"`
 }
@@ -161,15 +162,19 @@ func (w *Wallet) calculateTrades() {
 // Retrieve prices for all assets
 func (w *Wallet) calculatePrices() {
 	log.Info("Calculating prices...")
+
 	for asset, d := range w.Holdings {
 		log.Info("Getting Coingecko coin list")
+
 		coinList, err := coingecko.GetCoinList()
 		if err != nil {
 			log.Errorf("Could not get coin list: %v", err)
 		}
+
 		for _, coin := range coinList.Coins {
 			if strings.EqualFold(asset, coin.Symbol) {
 				log.Infof("Getting '%s' coin market data", coin.Name)
+
 				coinPrice, err := coingecko.GetCoinPrice(coin.ID)
 				if err != nil {
 					log.Errorf("Could not get coin price: %v", err)
@@ -177,7 +182,9 @@ func (w *Wallet) calculatePrices() {
 
 				total := coinPrice.MarketData.CurrentPrice.EUR * w.Holdings[asset].Quantity
 				d.CurrentValue = total
+				d.Name = coin.Name
 				w.Holdings[asset] = d
+				break
 			}
 		}
 	}
@@ -186,6 +193,7 @@ func (w *Wallet) calculatePrices() {
 // Calculate global wallet stats
 func (w *Wallet) calculateStats() {
 	log.Info("Calculating wallet stats...")
+
 	for _, asset := range w.Holdings {
 		w.Stats.TotalAssets += 1
 		w.Stats.TotalValue += asset.CurrentValue
@@ -203,6 +211,11 @@ func (w *Wallet) ProcessWallet() {
 
 	if err := utils.OutputResult(w); err != nil {
 		log.Errorf("Could not output result: %v", err)
+		return
+	}
+
+	if err := utils.WriteToFile("binance_wallet", &w); err != nil {
+		log.Errorf("Could not save wallet to file: %v", err)
 		return
 	}
 }
