@@ -21,9 +21,9 @@ type Client struct {
 	BaseUrl    string
 	APIKey     string
 	SecretKey  string
-	RetryDelay time.Duration // in seconds
+	RetryDelay time.Duration
 	MaxRetries int
-	MaxHistory int // in days
+	MaxHistory int
 }
 
 type ServerTime struct {
