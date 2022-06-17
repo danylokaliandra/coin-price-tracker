@@ -163,13 +163,14 @@ func (w *Wallet) calculateTrades() {
 func (w *Wallet) calculatePrices() {
 	log.Info("Calculating prices...")
 
-	for asset, d := range w.Holdings {
-		log.Info("Getting Coingecko coin list")
+	log.Info("Getting Coingecko coin list")
 
-		coinList, err := coingecko.GetCoinList()
-		if err != nil {
-			log.Errorf("Could not get coin list: %v", err)
-		}
+	coinList, err := coingecko.GetCoinList()
+	if err != nil {
+		log.Errorf("Could not get coin list: %v", err)
+	}
+
+	for asset, d := range w.Holdings {
 
 		for _, coin := range coinList.Coins {
 			if strings.EqualFold(asset, coin.Symbol) {
