@@ -34,12 +34,12 @@ func GetAccounts() (*Accounts, error) {
 	client := NewClient()
 	body, err := client.RequestWithRetries(accountsEndpoint, map[string]string{})
 	if err != nil {
-		return nil, fmt.Errorf("could not request accounts endpoint: %v", err)
+		return nil, fmt.Errorf("could not request accounts endpoint: %w", err)
 	}
 
 	accounts := Accounts{}
 	if err := json.Unmarshal(body, &accounts); err != nil {
-		return nil, fmt.Errorf("could not unmarshal accounts: %v", err)
+		return nil, fmt.Errorf("could not unmarshal accounts: %w", err)
 	}
 
 	return &accounts, nil
@@ -65,12 +65,12 @@ func GetDepositHistory() (*DepositHistory, error) {
 	client := NewClient()
 	body, err := client.RequestWithRetries(depositHistoryEndpoint, map[string]string{})
 	if err != nil {
-		return nil, fmt.Errorf("could not request deposit history endpoint: %v", err)
+		return nil, fmt.Errorf("could not request deposit history endpoint: %w", err)
 	}
 
 	depositHistory := DepositHistory{}
 	if err := json.Unmarshal(body, &depositHistory); err != nil {
-		return nil, fmt.Errorf("could not unmarshal deposit history: %v", err)
+		return nil, fmt.Errorf("could not unmarshal deposit history: %w", err)
 	}
 
 	return &depositHistory, nil
@@ -96,12 +96,12 @@ func GetWithdrawHistory() (*WithdrawHistory, error) {
 	client := NewClient()
 	body, err := client.RequestWithRetries(withdrawHistoryEndpoint, map[string]string{})
 	if err != nil {
-		return nil, fmt.Errorf("could not request withdraw history endpoint: %v", err)
+		return nil, fmt.Errorf("could not request withdraw history endpoint: %w", err)
 	}
 
 	withdrawHistory := WithdrawHistory{}
 	if err := json.Unmarshal(body, &withdrawHistory); err != nil {
-		return nil, fmt.Errorf("could not unmarshal withdraw history: %v", err)
+		return nil, fmt.Errorf("could not unmarshal withdraw history: %w", err)
 	}
 
 	return &withdrawHistory, nil

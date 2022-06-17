@@ -9,7 +9,7 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-func init() {
+func main() {
 	log.SetFormatter(&log.TextFormatter{
 		DisableColors: false,
 		FullTimestamp: true,
@@ -19,9 +19,7 @@ func init() {
 		fmt.Println(err)
 		os.Exit(1)
 	}
-}
 
-func main() {
 	if err := cmd.Execute(); err != nil {
 		fmt.Println(err)
 		os.Exit(1)

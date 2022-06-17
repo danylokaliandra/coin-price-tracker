@@ -23,12 +23,12 @@ func GetCoinList() (*CoinList, error) {
 
 	body, err := client.RequestWithRetries(coinListEndpoint, map[string]string{})
 	if err != nil {
-		return nil, fmt.Errorf("could not request coin list endpoint: %v", err)
+		return nil, fmt.Errorf("could not request coin list endpoint: %w", err)
 	}
 
 	coinList := CoinList{}
 	if err := json.Unmarshal(body, &coinList.Coins); err != nil {
-		return nil, fmt.Errorf("could not unmarshal coin list: %v", err)
+		return nil, fmt.Errorf("could not unmarshal coin list: %w", err)
 	}
 
 	return &coinList, nil
@@ -56,12 +56,12 @@ func GetCoinPrice(id string) (*CoinPrice, error) {
 	}
 	body, err := client.RequestWithRetries(fmt.Sprintf("%s/%s", coinPricesEndpoint, id), params)
 	if err != nil {
-		return nil, fmt.Errorf("could not request coin price endpoint: %v", err)
+		return nil, fmt.Errorf("could not request coin price endpoint: %w", err)
 	}
 
 	coinPrice := CoinPrice{}
 	if err := json.Unmarshal(body, &coinPrice); err != nil {
-		return nil, fmt.Errorf("could not unmarshal coin price: %v", err)
+		return nil, fmt.Errorf("could not unmarshal coin price: %w", err)
 	}
 
 	return &coinPrice, nil

@@ -14,8 +14,8 @@ import (
 
 type Client struct {
 	HTTPClient *http.Client
-	BaseUrl    string
-	RetryDelay time.Duration // in seconds
+	BaseURL    string
+	RetryDelay time.Duration
 	MaxRetries int
 }
 
@@ -25,7 +25,7 @@ func NewClient() *Client {
 		HTTPClient: &http.Client{
 			Timeout: time.Second * viper.GetDuration("tracklet.timeout"),
 		},
-		BaseUrl:    viper.GetString("aggregators.coingecko.apiBaseUrl"),
+		BaseURL:    viper.GetString("aggregators.coingecko.apiBaseURL"),
 		RetryDelay: viper.GetDuration("tracklet.retryDelay"),
 		MaxRetries: viper.GetInt("tracklet.maxRetries"),
 	}
@@ -45,9 +45,9 @@ func (c *Client) buildQueryString(q url.Values, params map[string]string) url.Va
 
 // HTTP get request for a given CoinGecko API endpoint
 func (c *Client) request(endpoint string, parameters map[string]string) ([]byte, error) {
-	req, err := http.NewRequest("GET", fmt.Sprintf("%s%s", c.BaseUrl, endpoint), nil)
+	req, err := http.NewRequest("GET", fmt.Sprintf("%s%s", c.BaseURL, endpoint), nil)
 	if err != nil {
-		return nil, fmt.Errorf("error while executing request: %v", err)
+		return nil, fmt.Errorf("error while executing request: %w", err)
 	}
 
 	q := req.URL.Query()
@@ -59,7 +59,7 @@ func (c *Client) request(endpoint string, parameters map[string]string) ([]byte,
 
 	response, err := c.HTTPClient.Do(req)
 	if err != nil {
-		return nil, fmt.Errorf("error while executing request: %v", err)
+		return nil, fmt.Errorf("error while executing request: %w", err)
 	}
 	defer response.Body.Close()
 
@@ -69,7 +69,7 @@ func (c *Client) request(endpoint string, parameters map[string]string) ([]byte,
 
 	body, err := ioutil.ReadAll(response.Body)
 	if err != nil {
-		return nil, fmt.Errorf("error while reading body: %v", err)
+		return nil, fmt.Errorf("error while reading body: %w", err)
 	}
 
 	return body, nil
@@ -92,13 +92,13 @@ func (c *Client) RequestWithRetries(endpoint string, parameters map[string]strin
 			break
 		}
 
-		retries += 1
+		retries++
 		log.Warnf("Retrying... [%d/%d]: %v", retries, c.MaxRetries, err)
 		time.Sleep(time.Second * c.RetryDelay)
 	}
 
 	if err != nil {
-		return nil, fmt.Errorf("could not request '%s' endpoint: %v", endpoint, err)
+		return nil, fmt.Errorf("could not request '%s' endpoint: %w", endpoint, err)
 	}
 
 	return body, err

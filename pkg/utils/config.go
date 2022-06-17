@@ -13,11 +13,11 @@ func setDefaultValues() {
 	viper.SetDefault("tracklet.retryDelay", 10)
 	viper.SetDefault("tracklet.maxRetries", 12)
 
-	viper.SetDefault("aggregators.coingecko.apiBaseUrl", "https://api.coingecko.com")
+	viper.SetDefault("aggregators.coingecko.apiBaseURL", "https://api.coingecko.com")
 
-	viper.SetDefault("exchanges.binance.apiBaseUrl", "https://api.binance.com")
+	viper.SetDefault("exchanges.binance.apiBaseURL", "https://api.binance.com")
 
-	viper.SetDefault("exchanges.kucoin.apiBaseUrl", "https://api.kucoin.com")
+	viper.SetDefault("exchanges.kucoin.apiBaseURL", "https://api.kucoin.com")
 }
 
 // Load configuration file
@@ -29,9 +29,8 @@ func LoadConfig() error {
 
 	setDefaultValues()
 
-	err := viper.ReadInConfig()
-	if err != nil {
-		return fmt.Errorf("could not retrieve config file: %v", err)
+	if err := viper.ReadInConfig(); err != nil {
+		return fmt.Errorf("could not retrieve config file: %w", err)
 	}
 
 	return nil

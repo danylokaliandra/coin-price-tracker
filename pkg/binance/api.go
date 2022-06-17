@@ -31,12 +31,12 @@ func GetTradingPairs() (*TradingPairs, error) {
 	client := NewClient()
 	body, err := client.RequestWithRetries(tradingPairsEndpoint, map[string]string{})
 	if err != nil {
-		return nil, fmt.Errorf("could not request trading pairs endpoint: %v", err)
+		return nil, fmt.Errorf("could not request trading pairs endpoint: %w", err)
 	}
 
 	tradingPairs := TradingPairs{}
 	if err := json.Unmarshal(body, &tradingPairs); err != nil {
-		return nil, fmt.Errorf("could not unmarshal trading pairs: %v", err)
+		return nil, fmt.Errorf("could not unmarshal trading pairs: %w", err)
 	}
 
 	return &tradingPairs, nil
@@ -72,12 +72,12 @@ func GetFiatPaymentsHistory() (*FiatPayments, error) {
 
 		body, err := client.RequestWithRetries(fiatPaymentsEndpoint, params)
 		if err != nil {
-			return nil, fmt.Errorf("could not request fiat payments endpoint: %v", err)
+			return nil, fmt.Errorf("could not request fiat payments endpoint: %w", err)
 		}
 
 		fiatPaymentsRange := FiatPayments{}
 		if err := json.Unmarshal(body, &fiatPaymentsRange); err != nil {
-			return nil, fmt.Errorf("could not unmarshal fiat payments history: %v", err)
+			return nil, fmt.Errorf("could not unmarshal fiat payments history: %w", err)
 		}
 
 		if len(fiatPaymentsRange.Data) > 0 {
@@ -92,7 +92,7 @@ type TradingHistory struct {
 	Symbol          string `json:"symbol"`
 	BaseAsset       string `json:"baseAsset,omitempty"`
 	QuoteAsset      string `json:"quoteAsset,omitempty"`
-	Id              int64  `json:"id"`
+	ID              int64  `json:"id"`
 	Price           string `json:"price"`
 	Quantity        string `json:"qty"`
 	QuoteQuantity   string `json:"quoteQty"`
@@ -114,12 +114,12 @@ func GetTradingHistory(tradingPairs *TradingPairs) (*[]TradingHistory, error) {
 		}
 		body, err := client.RequestWithRetries(tradingHistoryEndpoint, params)
 		if err != nil {
-			return nil, fmt.Errorf("could not request trades endpoint: %v", err)
+			return nil, fmt.Errorf("could not request trades endpoint: %w", err)
 		}
 
 		tradingHistoryRange := []TradingHistory{}
 		if err := json.Unmarshal(body, &tradingHistoryRange); err != nil {
-			return nil, fmt.Errorf("could not unmarshal trading history: %v", err)
+			return nil, fmt.Errorf("could not unmarshal trading history: %w", err)
 		}
 
 		if len(tradingHistoryRange) > 0 {
@@ -156,12 +156,12 @@ func GetDustConversionHistory() (*DustConversion, error) {
 
 		body, err := client.RequestWithRetries(dustConversionHistoryEndpoint, params)
 		if err != nil {
-			return nil, fmt.Errorf("could not request dust conversion history endpoint: %v", err)
+			return nil, fmt.Errorf("could not request dust conversion history endpoint: %w", err)
 		}
 
 		dustConversionRange := DustConversion{}
 		if err := json.Unmarshal(body, &dustConversionRange); err != nil {
-			return nil, fmt.Errorf("could not unmarshal dust conversion history: %v", err)
+			return nil, fmt.Errorf("could not unmarshal dust conversion history: %w", err)
 		}
 
 		if len(dustConversionRange.UserAssetDribblets) > 0 {
@@ -195,12 +195,12 @@ func GetDividendHistory() (*DividendHistory, error) {
 
 		body, err := client.RequestWithRetries(dividendHistoryEndpoint, params)
 		if err != nil {
-			return nil, fmt.Errorf("could not request dividend history endpoint: %v", err)
+			return nil, fmt.Errorf("could not request dividend history endpoint: %w", err)
 		}
 
 		dividendHistoryRange := DividendHistory{}
 		if err := json.Unmarshal(body, &dividendHistoryRange); err != nil {
-			return nil, fmt.Errorf("could not unmarshal dividend history: %v", err)
+			return nil, fmt.Errorf("could not unmarshal dividend history: %w", err)
 		}
 
 		if len(dividendHistoryRange.Rows) > 0 {
@@ -233,12 +233,12 @@ func GetDepositHistory() (*[]DepositHistory, error) {
 
 		body, err := client.RequestWithRetries(depositHistoryEndpoint, params)
 		if err != nil {
-			return nil, fmt.Errorf("could not request deposit history endpoint: %v", err)
+			return nil, fmt.Errorf("could not request deposit history endpoint: %w", err)
 		}
 
 		depositHistoryRange := []DepositHistory{}
 		if err := json.Unmarshal(body, &depositHistoryRange); err != nil {
-			return nil, fmt.Errorf("could not unmarshal deposit history: %v", err)
+			return nil, fmt.Errorf("could not unmarshal deposit history: %w", err)
 		}
 
 		if len(depositHistoryRange) > 0 {
@@ -271,12 +271,12 @@ func GetWithdrawHistory() (*[]WithdrawHistory, error) {
 
 		body, err := client.RequestWithRetries(withdrawHistoryEndpoint, params)
 		if err != nil {
-			return nil, fmt.Errorf("could not request withdraw history endpoint: %v", err)
+			return nil, fmt.Errorf("could not request withdraw history endpoint: %w", err)
 		}
 
 		withdrawHistoryRange := []WithdrawHistory{}
 		if err := json.Unmarshal(body, &withdrawHistoryRange); err != nil {
-			return nil, fmt.Errorf("could not unmarshal withdraw history: %v", err)
+			return nil, fmt.Errorf("could not unmarshal withdraw history: %w", err)
 		}
 
 		if len(withdrawHistoryRange) > 0 {

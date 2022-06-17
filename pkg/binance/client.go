@@ -18,7 +18,7 @@ import (
 
 type Client struct {
 	HTTPClient *http.Client
-	BaseUrl    string
+	BaseURL    string
 	APIKey     string
 	SecretKey  string
 	RetryDelay time.Duration
@@ -36,7 +36,7 @@ func NewClient() *Client {
 		HTTPClient: &http.Client{
 			Timeout: time.Second * viper.GetDuration("tracklet.timeout"),
 		},
-		BaseUrl:    viper.GetString("exchanges.binance.apiBaseUrl"),
+		BaseURL:    viper.GetString("exchanges.binance.apiBaseURL"),
 		APIKey:     viper.GetString("exchanges.binance.apiKey"),
 		SecretKey:  viper.GetString("exchanges.binance.secretKey"),
 		RetryDelay: viper.GetDuration("tracklet.retryDelay"),
@@ -47,19 +47,19 @@ func NewClient() *Client {
 
 // HTTP request Binance server time
 func (c *Client) getServerTime() (*ServerTime, error) {
-	response, err := http.Get(fmt.Sprintf("%s/api/v3/time", c.BaseUrl))
+	response, err := http.Get(fmt.Sprintf("%s/api/v3/time", c.BaseURL))
 	if err != nil {
-		return nil, fmt.Errorf("could not request time endpoint: %v", err)
+		return nil, fmt.Errorf("could not request time endpoint: %w", err)
 	}
 
 	body, err := ioutil.ReadAll(response.Body)
 	if err != nil {
-		return nil, fmt.Errorf("error while reading body: %v", err)
+		return nil, fmt.Errorf("error while reading body: %w", err)
 	}
 
 	serverTime := ServerTime{}
 	if err := json.Unmarshal(body, &serverTime); err != nil {
-		return nil, fmt.Errorf("could not unmarshal server time: %v", err)
+		return nil, fmt.Errorf("could not unmarshal server time: %w", err)
 	}
 
 	return &serverTime, nil
@@ -71,7 +71,7 @@ func (c *Client) generateSignature(queryString string) (string, error) {
 	_, err := mac.Write([]byte(queryString))
 	digest := mac.Sum(nil)
 	if err != nil {
-		return "", fmt.Errorf("could not generate hmac: %v", err)
+		return "", fmt.Errorf("could not generate hmac: %w", err)
 	}
 	hexDigest := hex.EncodeToString(digest)
 	return hexDigest, nil
@@ -104,9 +104,9 @@ func (c *Client) buildQueryString(q url.Values, params map[string]string) url.Va
 
 // HTTP get request for a given Binance API endpoint
 func (c *Client) request(endpoint string, parameters map[string]string) ([]byte, error) {
-	req, err := http.NewRequest("GET", fmt.Sprintf("%s%s", c.BaseUrl, endpoint), nil)
+	req, err := http.NewRequest("GET", fmt.Sprintf("%s%s", c.BaseURL, endpoint), nil)
 	if err != nil {
-		return nil, fmt.Errorf("error while executing request: %v", err)
+		return nil, fmt.Errorf("error while executing request: %w", err)
 	}
 
 	q := req.URL.Query()
@@ -120,7 +120,7 @@ func (c *Client) request(endpoint string, parameters map[string]string) ([]byte,
 
 	response, err := c.HTTPClient.Do(req)
 	if err != nil {
-		return nil, fmt.Errorf("error while executing request: %v", err)
+		return nil, fmt.Errorf("error while executing request: %w", err)
 	}
 	defer response.Body.Close()
 
@@ -130,7 +130,7 @@ func (c *Client) request(endpoint string, parameters map[string]string) ([]byte,
 
 	body, err := ioutil.ReadAll(response.Body)
 	if err != nil {
-		return nil, fmt.Errorf("error while reading body: %v", err)
+		return nil, fmt.Errorf("error while reading body: %w", err)
 	}
 
 	return body, nil
@@ -153,13 +153,13 @@ func (c *Client) RequestWithRetries(endpoint string, parameters map[string]strin
 			break
 		}
 
-		retries += 1
+		retries++
 		log.Warnf("Retrying... [%d/%d]: %v", retries, c.MaxRetries, err)
 		time.Sleep(time.Second * c.RetryDelay)
 	}
 
 	if err != nil {
-		return nil, fmt.Errorf("could not request '%s' endpoint: %v", endpoint, err)
+		return nil, fmt.Errorf("could not request '%s' endpoint: %w", endpoint, err)
 	}
 
 	return body, err

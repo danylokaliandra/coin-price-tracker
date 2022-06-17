@@ -16,7 +16,7 @@ import (
 
 type Client struct {
 	HTTPClient *http.Client
-	BaseUrl    string
+	BaseURL    string
 	APIKey     string
 	SecretKey  string
 	Passphrase string
@@ -31,7 +31,7 @@ func NewClient() *Client {
 		HTTPClient: &http.Client{
 			Timeout: time.Second * viper.GetDuration("tracklet.timeout"),
 		},
-		BaseUrl:    viper.GetString("exchanges.kucoin.apiBaseUrl"),
+		BaseURL:    viper.GetString("exchanges.kucoin.apiBaseURL"),
 		APIKey:     viper.GetString("exchanges.kucoin.apiKey"),
 		SecretKey:  viper.GetString("exchanges.kucoin.secretKey"),
 		Passphrase: viper.GetString("exchanges.kucoin.passphrase"),
@@ -53,31 +53,31 @@ func (c *Client) generateSignature(queryString string) (string, error) {
 	mac := hmac.New(sha256.New, []byte(c.SecretKey))
 	_, err := mac.Write([]byte(queryString))
 	if err != nil {
-		return "", fmt.Errorf("could not generate hmac: %v", err)
+		return "", fmt.Errorf("could not generate hmac: %w", err)
 	}
 	return base64.StdEncoding.EncodeToString(mac.Sum(nil)), nil
 }
 
 // HTTP get request for a given Kucoin API endpoint
 func (c *Client) request(endpoint string, parameters map[string]string) ([]byte, error) {
-	req, err := http.NewRequest("GET", fmt.Sprintf("%s%s", c.BaseUrl, endpoint), nil)
+	req, err := http.NewRequest("GET", fmt.Sprintf("%s%s", c.BaseURL, endpoint), nil)
 	if err != nil {
-		return nil, fmt.Errorf("error while executing request: %v", err)
+		return nil, fmt.Errorf("error while executing request: %w", err)
 	}
 
 	serverTime := c.getServerTime()
 	if err != nil {
-		return nil, fmt.Errorf("error while getting server time: %v", err)
+		return nil, fmt.Errorf("error while getting server time: %w", err)
 	}
 
 	signature, err := c.generateSignature(fmt.Sprintf("%d%s%s", serverTime, req.Method, req.URL.Path))
 	if err != nil {
-		return nil, fmt.Errorf("error while generating signature")
+		return nil, fmt.Errorf("error while generating signature: %w", err)
 	}
 
 	passphrase, err := c.generateSignature(c.Passphrase)
 	if err != nil {
-		return nil, fmt.Errorf("error while generating passphrase signature")
+		return nil, fmt.Errorf("error while generating passphrase signature: %w", err)
 	}
 
 	req.Header.Add("KC-API-KEY", c.APIKey)
@@ -88,7 +88,7 @@ func (c *Client) request(endpoint string, parameters map[string]string) ([]byte,
 
 	response, err := c.HTTPClient.Do(req)
 	if err != nil {
-		return nil, fmt.Errorf("error while executing request: %v", err)
+		return nil, fmt.Errorf("error while executing request: %w", err)
 	}
 	defer response.Body.Close()
 
@@ -98,7 +98,7 @@ func (c *Client) request(endpoint string, parameters map[string]string) ([]byte,
 
 	body, err := ioutil.ReadAll(response.Body)
 	if err != nil {
-		return nil, fmt.Errorf("error while reading body: %v", err)
+		return nil, fmt.Errorf("error while reading body: %w", err)
 	}
 
 	return body, nil
@@ -121,13 +121,13 @@ func (c *Client) RequestWithRetries(endpoint string, parameters map[string]strin
 			break
 		}
 
-		retries += 1
+		retries++
 		log.Warnf("Retrying... [%d/%d]: %v", retries, c.MaxRetries, err)
 		time.Sleep(time.Second * c.RetryDelay)
 	}
 
 	if err != nil {
-		return nil, fmt.Errorf("could not request '%s' endpoint: %v", endpoint, err)
+		return nil, fmt.Errorf("could not request '%s' endpoint: %w", endpoint, err)
 	}
 
 	return body, err

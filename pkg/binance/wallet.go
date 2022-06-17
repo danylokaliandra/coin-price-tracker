@@ -195,7 +195,7 @@ func (w *Wallet) calculateStats() {
 	log.Info("Calculating wallet stats...")
 
 	for _, asset := range w.Holdings {
-		w.Stats.TotalAssets += 1
+		w.Stats.TotalAssets++
 		w.Stats.TotalValue += asset.CurrentValue
 	}
 

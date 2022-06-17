@@ -22,7 +22,7 @@ func Execute() error {
 	initCmd()
 
 	if err := rootCmd.Execute(); err != nil {
-		return fmt.Errorf("got error %v", err)
+		return fmt.Errorf("got error %w", err)
 	}
 
 	return nil

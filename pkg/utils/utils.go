@@ -35,7 +35,7 @@ func GetDateRanges(maxHistory int, timeRange int) []DateRange {
 func GetDataPath() (string, error) {
 	homeDir, err := os.UserHomeDir()
 	if err != nil {
-		return "", fmt.Errorf("could not get user homedir: %v", err)
+		return "", fmt.Errorf("could not get user homedir: %w", err)
 	}
 
 	return fmt.Sprintf("%s/.tracklet/data", homeDir), nil
@@ -71,20 +71,20 @@ func LoadFromFile(filename string) []byte {
 func WriteToFile(filename string, content interface{}) error {
 	dataPath, err := GetDataPath()
 	if err != nil {
-		log.Errorf("could not get data path: %v", err)
-		return nil
+		return fmt.Errorf("could not get data path: %w", err)
 	}
+
+	filePath := fmt.Sprintf("%s/%s.json", dataPath, filename)
 
 	log.Infof("Saving data to file '%s'", dataPath)
 
 	data, err := json.MarshalIndent(content, "", "  ")
 	if err != nil {
-		return fmt.Errorf("could not marshal output: %v", err)
+		return fmt.Errorf("could not marshal output: %w", err)
 	}
 
-	err = ioutil.WriteFile(fmt.Sprintf("%s/%s.json", dataPath, filename), data, 0644)
-	if err != nil {
-		return fmt.Errorf("could not write data to file: %v", err)
+	if err := ioutil.WriteFile(filePath, data, 0600); err != nil {
+		return fmt.Errorf("could not write data to file: %w", err)
 	}
 
 	return nil
